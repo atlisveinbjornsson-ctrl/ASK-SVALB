@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aðalskipulag Svalbarðsstrandarhrepps 2024 - 2044</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root{--bg:#f0f0ed;--surface:#fff;--border:#dddcd8;--border2:#e8e8e4;--accent:#8b1e1e;--accent2:#a0522d;--text:#1a1a18;--muted:#888884;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Calibri','Trebuchet MS',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+header{display:flex;align-items:center;gap:10px;padding:9px 14px;background:linear-gradient(135deg,#f2ddd4 0%,#fbf4f0 60%,#f7e8e2 100%);border-bottom:1px solid #d8a89a;flex-shrink:0;}
+.logo{font-size:16px;font-weight:800;color:var(--accent);letter-spacing:-.5px;white-space:nowrap;}
+.logo span{color:var(--text);}
+.hdr-btn{background:var(--accent);color:#fff;border:none;padding:6px 13px;border-radius:5px;font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;}
+.hdr-btn:hover{background:#6e1818;}.hdr-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
+#file-input,#qml-input-global{display:none;}
+.file-name{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.main{display:flex;flex:1;overflow:hidden;position:relative;}
+#sidebar{position:absolute;top:0;left:0;bottom:0;width:300px;background:rgba(250,250,248,.97);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:600;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 24px rgba(0,0,0,.08);}
+#sidebar.open{transform:translateX(0);}
+#sidebar-tab{position:absolute;top:50%;left:0;z-index:599;transform:translateY(-50%);writing-mode:vertical-rl;text-orientation:mixed;background:linear-gradient(135deg,#6e1818,#8b1e1e);color:#fff;padding:14px 7px;border-radius:0 8px 8px 0;cursor:pointer;font-family:'Calibri','Trebuchet MS',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;box-shadow:2px 2px 10px rgba(0,0,0,.12);transition:left .28s cubic-bezier(.4,0,.2,1),background .15s;user-select:none;}
+#sidebar-tab:hover{background:linear-gradient(135deg,#5a1414,#8b1e1e);}
+#sidebar-tab.shifted{left:300px;}
+.sb-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid var(--border2);}
+.sb-title{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);}
+.sb-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;}
+.sb-close:hover{background:rgba(0,0,0,.05);color:var(--text);}
+.sb-section{padding:9px 12px 6px;border-bottom:1px solid var(--border2);font-size:11px;font-family:'Calibri','Trebuchet MS',sans-serif;color:var(--muted);letter-spacing:1.8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+#layer-count{background:var(--border);color:var(--text);padding:1px 7px;border-radius:10px;font-size:11px;}
+#layer-list{flex:1;overflow-y:auto;padding:5px;}
+#layer-list::-webkit-scrollbar{width:3px;}#layer-list::-webkit-scrollbar-thumb{background:var(--border);}
+.layer-item{border-radius:7px;border:1px solid transparent;margin-bottom:5px;overflow:hidden;background:white;}
+.layer-item.active{border-color:rgba(139,30,30,.18);}
+.layer-row{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;}
+.layer-row:hover{background:rgba(0,0,0,.02);}
+.layer-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1.5px solid rgba(0,0,0,.12);}
+.layer-info{flex:1;overflow:hidden;}
+.layer-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Calibri','Trebuchet MS',sans-serif;}
+.layer-meta{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);margin-top:1px;}
+.layer-toggle{width:26px;height:15px;background:var(--border);border-radius:8px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:none;}
+.layer-toggle.on{background:var(--accent);}
+.layer-toggle::after{content:'';position:absolute;width:11px;height:11px;background:white;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.layer-toggle.on::after{transform:translateX(11px);}
+.ctrl-row{display:flex;align-items:center;gap:5px;padding:0 9px 8px;flex-wrap:wrap;border-top:1px solid var(--border2);}
+.ctrl-row-inner{display:flex;align-items:center;gap:5px;width:100%;padding:6px 0 0;}
+.ctrl-lbl{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);white-space:nowrap;}
+.ctrl-btn{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--muted);transition:all .12s;}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ctrl-btn.on{background:rgba(139,30,30,.08);border-color:rgba(139,30,30,.3);color:var(--accent);}
+.ctrl-tag{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ctrl-clear{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:#cc4444;margin-left:auto;}
+.label-select{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:white;color:var(--text);flex:1;min-width:0;}
+.label-fields{display:flex;flex-direction:column;gap:3px;padding:4px 0 2px;width:100%;}
+.lbl-check{display:flex;align-items:center;gap:5px;font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--text);cursor:pointer;padding:1px 0;}
+.lbl-check input{cursor:pointer;accent-color:var(--accent);width:11px;height:11px;}
+.lbl-sep-wrap{display:flex;align-items:center;gap:5px;font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);margin-top:2px;border-top:1px solid var(--border2);padding-top:4px;}
+.lbl-sep-input{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;width:36px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:white;color:var(--text);}
+#map-container{flex:1;position:relative;width:100%;}
+#map{width:100%;height:100%;}
+.feat-label{background:transparent!important;border:none!important;box-shadow:none!important;font-weight:600;pointer-events:none;white-space:nowrap;}
+.feat-label::before{display:none!important;}
+#drop-overlay{position:absolute;inset:0;background:rgba(240,240,237,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:2000;pointer-events:none;opacity:0;transition:opacity .2s;}
+#drop-overlay.visible{opacity:1;pointer-events:all;}
+.drop-icon{font-size:44px;animation:float 2s ease-in-out infinite;}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.drop-text{font-size:19px;font-weight:700;color:var(--accent);}
+.drop-sub{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);}
+#empty-state{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;z-index:5;}
+#empty-state.hidden{display:none!important;}
+.empty-icon{font-size:44px;opacity:.18;}.empty-title{font-size:16px;font-weight:700;opacity:.3;}
+.empty-sub{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);}
+#loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;flex-direction:column;align-items:center;gap:10px;z-index:2000;background:white;padding:22px 28px;border-radius:10px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.1);}
+#loading.visible{display:flex;}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);}
+#info-panel{position:absolute;bottom:14px;right:14px;background:white;border:1px solid var(--border);border-radius:9px;padding:13px;min-width:200px;max-width:280px;z-index:500;display:none;max-height:260px;overflow-y:auto;box-shadow:0 3px 14px rgba(0,0,0,.08);}
+#info-panel.visible{display:block;}
+#info-panel h4{font-size:11px;color:var(--accent);font-family:'Calibri','Trebuchet MS',sans-serif;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+.info-row{display:flex;gap:8px;font-size:11px;margin-bottom:4px;}
+.info-key{color:var(--muted);font-family:'Calibri','Trebuchet MS',sans-serif;min-width:70px;flex-shrink:0;}
+.info-val{color:var(--text);word-break:break-all;}
+#info-close{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;}
+.stats-bar{padding:6px 12px;background:var(--surface);border-top:1px solid var(--border2);font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);display:flex;gap:12px;flex-shrink:0;}
+.stat-val{color:var(--accent2);}
+#debug{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-width:280px;max-width:380px;max-height:40vh;overflow-y:auto;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.1);}
+#debug h5{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+#debug-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0;}
+.drow{display:flex;align-items:flex-start;gap:6px;margin-bottom:2px;line-height:1.5;}
+.drow .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.d-ok .dot{background:#8b1e1e;}.d-err .dot{background:#cc3333;}.d-info .dot{background:#bbb;}
+.drow span{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;word-break:break-all;}
+.leaflet-container{background:#e8e8e4;}
+.sb-divider{padding:6px 12px 4px;font-size:9px;font-family:'Calibri','Trebuchet MS',sans-serif;color:var(--muted);letter-spacing:1.8px;text-transform:uppercase;border-top:1px solid var(--border2);margin-top:4px;}
+.ext-item{border-radius:7px;border:1px solid transparent;margin-bottom:5px;overflow:hidden;background:white;}
+.ext-item.active{border-color:rgba(160,82,45,.18);}
+.ext-row{display:flex;align-items:center;gap:8px;padding:8px 10px;}
+.ext-icon{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1.5px solid rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:9px;}
+.ext-info{flex:1;overflow:hidden;}
+.ext-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Calibri','Trebuchet MS',sans-serif;}
+.ext-meta{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--muted);margin-top:1px;}
+.osm-zoom-msg{font-size:11px;color:var(--muted);padding:0 10px 8px;font-family:'Calibri','Trebuchet MS',sans-serif;display:none;}
+.wms-section{padding:8px 10px 6px;display:flex;flex-direction:column;gap:5px;}
+.wms-btn{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:white;cursor:pointer;font-family:'Calibri','Trebuchet MS',sans-serif;font-size:12px;color:var(--muted);text-align:left;transition:all .15s;width:100%;}
+.wms-btn:hover{border-color:var(--accent);color:var(--accent);}
+.wms-btn.on{background:rgba(139,30,30,.07);border-color:rgba(139,30,30,.35);color:var(--accent);}
+.wms-btn .wms-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .15s;}
+.wms-btn.on .wms-dot{background:var(--accent);}
+.wms-btn .wms-label{flex:1;font-weight:600;}
+.wms-btn .wms-meta{font-size:10px;color:var(--muted);margin-left:auto;}
+.layer-item-simple{border-radius:7px;border:1px solid var(--border2);margin-bottom:4px;background:white;display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;}
+.layer-item-simple:hover{border-color:rgba(139,30,30,.2);}
+.layer-swatch-s{width:13px;height:13px;border-radius:3px;flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);}
+.layer-name-s{font-size:12px;font-weight:600;font-family:'Calibri','Trebuchet MS',sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.layer-meta-s{font-size:10px;color:var(--muted);font-family:'Calibri','Trebuchet MS',sans-serif;white-space:nowrap;}
+.lbl-tog{font-family:'Calibri','Trebuchet MS',sans-serif;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--muted);flex-shrink:0;}
+.lbl-tog.on{background:rgba(139,30,30,.08);border-color:rgba(139,30,30,.3);color:var(--accent);}
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="Svalbarðsstrandarhreppur" style="height:70px;width:auto;object-fit:contain;flex-shrink:0;" />
+  <div style="display:flex;flex-direction:column;justify-content:center;line-height:1.25;"><span style="font-family:'Calibri','Trebuchet MS',sans-serif;font-size:15px;font-weight:700;color:#8b1e1e;letter-spacing:-.3px;">Aðalskipulag Svalbarðsstrandarhrepps 2024 – 2044</span><span style="font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:#aa7a6a;letter-spacing:.5px;">Tillaga til kynningar</span></div>
+  <button class="hdr-btn" id="open-btn" onclick="document.getElementById('file-input').click()" disabled>↑ Opna .gpkg</button>
+  <input type="file" id="file-input" accept=".gpkg,.gpkx"/>
+  <input type="file" id="qml-input-global" accept=".qml"/>
+  <span class="file-name" id="file-name-display">Hleð SQL.js…</span>
+</header>
+<div class="main">
+  <div id="sidebar">
+    <div class="sb-header">
+      <span class="sb-title">Grunngögn</span>
+      <button class="sb-close" onclick="toggleDrawer()" title="Loka">✕</button>
+    </div>
+    <div id="layer-list"></div>
+    <div class="stats-bar">Þættir: <span class="stat-val" id="stat-features">0</span> &nbsp;|&nbsp; Lög: <span class="stat-val" id="stat-layers">0</span></div>
+  </div>
+  <div id="sidebar-tab" onclick="toggleDrawer()">Grunngögn</div>
+  <div id="map-container">
+    <div id="map"></div>
+    <div id="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <div class="empty-title">Hleð gögnum…</div>
+      <div class="empty-sub">Skipulagsgögn og bakgrunnslög hlaðast sjálfkrafa</div>
+    </div>
+    <div id="drop-overlay">
+      <div class="drop-icon">📦</div><div class="drop-text">Sleppa til að opna</div>
+      <div class="drop-sub">.gpkg / .gpkx</div>
+    </div>
+    <div id="loading"><div class="spinner"></div><div class="load-msg" id="load-msg">Les gögn…</div></div>
+    <div id="info-panel">
+      <button id="info-close" onclick="closeInfo()">✕</button>
+      <h4>Eiginleikar</h4><div id="info-content"></div>
+    </div>
+    <div id="debug">
+      <h5>Greining <button id="debug-close" onclick="document.getElementById('debug').style.display='none'">✕</button></h5>
+      <div id="dlog"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+'use strict';
+
+// ═══ Drawer ═══════════════════════════════════════════════════════════════════
+function toggleDrawer() {
+  const sb = document.getElementById('sidebar');
+  const tab = document.getElementById('sidebar-tab');
+  const isOpen = sb.classList.toggle('open');
+  tab.classList.toggle('shifted', isOpen);
+}
+
+// ═══ Debug ════════════════════════════════════════════════════════════════════
+function dlog(msg, cls='info') {
+  const el = document.getElementById('dlog');
+  const r = document.createElement('div');
+  r.className = 'drow d-'+cls;
+  r.innerHTML = `<div class="dot"></div><span>${msg}</span>`;
+  el.appendChild(r); el.scrollTop = el.scrollHeight;
+  console[cls==='err'?'error':'log']('[GPKG]', msg);
+}
+
+// ═══ Map ══════════════════════════════════════════════════════════════════════
+const map = L.map('map',{zoomControl:true,attributionControl:true}).setView([65.75,-18.1],11);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© OpenStreetMap © CARTO', maxZoom:20, subdomains:'abcd'
+}).addTo(map);
+dlog('Leaflet ✓','ok');
+
+// ═══ Proj4 ════════════════════════════════════════════════════════════════════
+proj4.defs('EPSG:3057','+proj=lcc +lat_1=64.25 +lat_2=65.75 +lat_0=65 +lon_0=-19 +x_0=500000 +y_0=500000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+proj4.defs('EPSG:5325','+proj=lcc +lat_1=64.25 +lat_2=65.75 +lat_0=65 +lon_0=-19 +x_0=500000 +y_0=500000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+proj4.defs('EPSG:8088','+proj=lcc +lat_1=64.25 +lat_2=65.75 +lat_0=65 +lon_0=-19 +x_0=500000 +y_0=500000 +ellps=GRS80 +units=m +no_defs');
+proj4.defs('EPSG:32627','+proj=utm +zone=27 +datum=WGS84 +units=m +no_defs');
+proj4.defs('EPSG:32628','+proj=utm +zone=28 +datum=WGS84 +units=m +no_defs');
+proj4.defs('EPSG:4326','+proj=longlat +datum=WGS84 +no_defs');
+proj4.defs('EPSG:3857','+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +no_defs');
+dlog('Proj4 ✓','ok');
+
+let toWGS84 = (x,y) => [x,y];
+
+function detectProjection(db) {
+  let srid = null;
+  try { const r=db.exec("SELECT srs_id FROM gpkg_geometry_columns LIMIT 1"); if(r[0]&&r[0].values.length) srid=r[0].values[0][0]; } catch(e){}
+  if (!srid) { try { const r=db.exec("SELECT srs_id FROM gpkg_contents WHERE data_type='features' LIMIT 1"); if(r[0]&&r[0].values.length) srid=r[0].values[0][0]; } catch(e){} }
+  dlog('SRID: '+srid);
+  if (!srid || srid===4326) { toWGS84=(x,y)=>[x,y]; return; }
+  const key = 'EPSG:'+srid;
+  if (proj4.defs(key)) { toWGS84=(x,y)=>proj4(key,'EPSG:4326',[x,y]); dlog(key+' ✓','ok'); return; }
+  try {
+    const r=db.exec(`SELECT definition FROM gpkg_spatial_ref_sys WHERE srs_id=${srid} LIMIT 1`);
+    if (r[0]&&r[0].values.length) {
+      const wkt=r[0].values[0][0]||'';
+      if (wkt && wkt!=='undefined') { proj4.defs(key,wkt); toWGS84=(x,y)=>proj4(key,'EPSG:4326',[x,y]); dlog('WKT ✓','ok'); return; }
+    }
+  } catch(e){}
+  dlog('Óþekkt SRID '+srid+' → ISN93','err');
+  toWGS84=(x,y)=>{ try{return proj4('EPSG:3057','EPSG:4326',[x,y]);}catch(e){return[x,y];} };
+}
+
+// ═══ SVG Pattern registry ═════════════════════════════════════════════════════
+const _patCache = {};
+const _patQueue = [];
+
+function _injectPattern({id,w,h,angle,content}) {
+  const svgEl = document.querySelector('#map svg');
+  if (!svgEl) return false;
+  let defs = svgEl.querySelector('defs');
+  if (!defs) { defs=document.createElementNS('http://www.w3.org/2000/svg','defs'); svgEl.insertBefore(defs,svgEl.firstChild); }
+  if (defs.querySelector('#'+id)) { _patCache[id]=true; return true; }
+  const pat = document.createElementNS('http://www.w3.org/2000/svg','pattern');
+  pat.setAttribute('id',id);
+  pat.setAttribute('patternUnits','userSpaceOnUse');
+  pat.setAttribute('width',w); pat.setAttribute('height',h);
+  if (angle) pat.setAttribute('patternTransform',`rotate(${angle})`);
+  pat.innerHTML = content;
+  defs.appendChild(pat);
+  _patCache[id] = true;
+  return true;
+}
+
+function flushPatterns() {
+  const svgEl = document.querySelector('#map svg');
+  if (!svgEl) { setTimeout(flushPatterns, 80); return; }
+  const injectedIds = [];
+  while (_patQueue.length) {
+    const p = _patQueue.shift();
+    if (_injectPattern(p)) injectedIds.push(p.id);
+  }
+  if (injectedIds.length) {
+    const selector = injectedIds.map(id => `path[fill="url(#${id})"]`).join(',');
+    try {
+      svgEl.querySelectorAll(selector).forEach(el => {
+        const f = el.getAttribute('fill');
+        el.removeAttribute('fill');
+        el.setAttribute('fill', f);
+      });
+    } catch(e) {}
+  }
+}
+
+function makePattern(id, w, h, angle, content) {
+  if (_patCache[id] === true) return 'url(#'+id+')';
+  const stored = {id, w, h, angle, content};
+  if (_injectPattern(stored)) return 'url(#'+id+')';
+  if (_patCache[id] !== 'q') { _patQueue.push(stored); _patCache[id] = 'q'; }
+  return 'url(#'+id+')';
+}
+
+function makeHatch(angle, distanceMM, lineWidthMM, lineColor, bgColor) {
+  const sz = Math.max(3, distanceMM * 3.78);
+  const lw = Math.max(0.3, lineWidthMM * 3.78);
+  const id = `h_${(angle*10)|0}_${(sz*10)|0}_${(lw*10)|0}_${lineColor.replace(/[^\w]/g,'')}_${(bgColor||'').replace(/[^\w]/g,'')}`;
+  if (_patCache[id]) return 'url(#'+id+')';
+  const bg  = bgColor ? `<rect width="${sz}" height="${sz}" fill="${bgColor}"/>` : '';
+  const svg = `${bg}<line x1="0" y1="${sz/2}" x2="${sz}" y2="${sz/2}" stroke="${lineColor}" stroke-width="${lw}"/>`;
+  return makePattern(id, sz, sz, angle, svg);
+}
+
+function makeDualHatch(a1, a2, distMM, lwMM, lineColor, bgColor) {
+  const sz = Math.max(3, distMM * 3.78);
+  const lw = Math.max(0.3, lwMM * 3.78);
+  const id = `dh_${(a1*10)|0}_${(a2*10)|0}_${(sz*10)|0}_${(lw*10)|0}_${lineColor.replace(/[^\w]/g,'')}`;
+  if (_patCache[id]) return 'url(#'+id+')';
+  const tsz = sz * 2;
+  const bg  = bgColor ? `<rect width="${tsz}" height="${tsz}" fill="${bgColor}"/>` : '';
+  function linesAt(angle, spacing, size) {
+    const rad = angle * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    let lines = '';
+    for (let i = -size; i < size * 2; i += spacing) {
+      const px = i * (-sin), py = i * cos;
+      const dx = cos * size * 2, dy = sin * size * 2;
+      lines += `<line x1="${(px-dx).toFixed(1)}" y1="${(py-dy).toFixed(1)}" x2="${(px+dx).toFixed(1)}" y2="${(py+dy).toFixed(1)}" stroke="${lineColor}" stroke-width="${lw}"/>`;
+    }
+    return lines;
+  }
+  const content = bg + linesAt(a1, sz, tsz) + linesAt(a2, sz, tsz);
+  return makePattern(id, tsz, tsz, 0, content);
+}
+
+function makeCrossHatch(angle, distanceMM, lineWidthMM, color) {
+  const sz = Math.max(3, distanceMM * 3.78);
+  const lw = Math.max(0.3, lineWidthMM * 3.78);
+  const id = `x_${(angle*10)|0}_${(sz*10)|0}_${(lw*10)|0}_${color.replace(/[^\w]/g,'')}`;
+  const svg = `<line x1="${sz/2}" y1="0" x2="${sz/2}" y2="${sz}" stroke="${color}" stroke-width="${lw}"/>
+               <line x1="0" y1="${sz/2}" x2="${sz}" y2="${sz/2}" stroke="${color}" stroke-width="${lw}"/>`;
+  return makePattern(id, sz, sz, angle, svg);
+}
+
+// ═══ QML parser ═══════════════════════════════════════════════════════════════
+function parseQML(xmlStr) {
+  const doc = new DOMParser().parseFromString(xmlStr, 'application/xml');
+  const renderer = doc.querySelector('renderer-v2');
+  let styler = () => defStyle();
+  if (renderer) {
+    const type = renderer.getAttribute('type');
+    dlog('QML renderer: '+type);
+    switch(type) {
+      case 'singleSymbol':      styler = buildSingleStyler(renderer);      break;
+      case 'categorizedSymbol': styler = buildCategorizedStyler(renderer); break;
+      case 'graduatedSymbol':   styler = buildGraduatedStyler(renderer);   break;
+      case 'RuleRenderer':      styler = buildRuleStyler(renderer);        break;
+      default: dlog('Óþekkt renderer: '+type,'err'); styler = buildSingleStyler(renderer);
+    }
+  }
+  const labelConfig = parseLabeling(doc);
+  return { styler, labelConfig };
+}
+
+function parseLabeling(doc) {
+  const lab = doc.querySelector('labeling');
+  if (!lab || lab.getAttribute('type') === 'no-labels') return null;
+  const settings = lab.querySelector('settings') || lab;
+  let fieldName = null;
+  const fe = settings.querySelector('fieldName');
+  if (fe) fieldName = fe.textContent.trim();
+  if (!fieldName) {
+    const ts = settings.querySelector('text-style');
+    if (ts) fieldName = ts.getAttribute('fieldName') || ts.getAttribute('field-name') || ts.getAttribute('field');
+  }
+  if (!fieldName) {
+    const expr = settings.querySelector('expr');
+    if (expr) fieldName = expr.textContent.replace(/^"+|"+$/g,'').trim();
+  }
+  if (!fieldName) return null;
+  const ts = settings.querySelector('text-style');
+  const fontSize  = parseFloat((ts && (ts.getAttribute('fontSize') || ts.getAttribute('font-size'))) || '10');
+  const fontColor = ts ? (ts.getAttribute('textColor') || ts.getAttribute('color') || '0,0,0,255') : '0,0,0,255';
+  const bold      = ts ? (ts.getAttribute('fontWeight') === '75' || ts.getAttribute('bold') === '1') : false;
+  const italic    = ts ? (ts.getAttribute('italic') === '1') : false;
+  const fontFamily = ts ? (ts.getAttribute('fontFamily') || ts.getAttribute('font-family') || 'Calibri') : 'Calibri';
+  const buf = settings.querySelector('text-buffer') || settings.querySelector('buffer');
+  const bufOn    = buf ? (buf.getAttribute('bufferDraw') === '1' || buf.getAttribute('draw') === '1') : false;
+  const bufSize  = buf ? parseFloat(buf.getAttribute('bufferSize') || buf.getAttribute('size') || '1') : 1;
+  const bufColor = buf ? (buf.getAttribute('bufferColor') || buf.getAttribute('color') || '255,255,255,255') : '255,255,255,255';
+  const colObj = qColor(fontColor);
+  const bufObj = qColor(bufColor);
+  dlog(`Labels: "${fieldName}", ${fontSize}pt, buf=${bufOn}`);
+  return {
+    fieldName,
+    fontSize: Math.max(11, Math.min(fontSize, 24)),
+    color: colObj.hex,
+    bold,
+    italic,
+    fontFamily,
+    bufferOn: bufOn,
+    bufferSize: bufSize * 2,
+    bufferColor: bufObj.hex
+  };
+}
+
+function readProps(layerEl) {
+  const p = {};
+  for (const prop of layerEl.querySelectorAll('prop'))               p[prop.getAttribute('k')] = prop.getAttribute('v');
+  for (const o    of layerEl.querySelectorAll('Option[name][value]')) p[o.getAttribute('name')] = o.getAttribute('value');
+  return p;
+}
+
+function parseSimpleLine(layerEl, symAlpha) {
+  const p = readProps(layerEl);
+  const s = qColor(p['line_color'] || p['color'] || '0,0,0,255');
+  const lw = parseFloat(p['line_width'] || p['width'] || '0.26');
+  const wPx = Math.max(0.5, lw * 3.78);
+  const useCustom = p['use_custom_dash'] === '1';
+  const customDash = p['customdash'] || '';
+  const pen = p['line_style'] || p['penstyle'] || 'solid';
+  let dashArray = null;
+  if (useCustom && customDash) {
+    dashArray = customDash.split(';').map(v => Math.max(0.5, parseFloat(v) * 3.78).toFixed(1)).join(',');
+  } else {
+    dashArray = penStyleToDash(pen, wPx);
+  }
+  return {
+    color: s.hex,
+    weight: wPx,
+    opacity: (s.a / 255) * symAlpha,
+    fillColor: 'none',
+    fillOpacity: 0,
+    radius: 5,
+    dashArray
+  };
+}
+
+function symbolToStyle(sym) {
+  if (!sym) return [defStyle()];
+  const symAlpha = parseFloat(sym.getAttribute('alpha') || '1');
+  const symType  = (sym.getAttribute('type') || 'fill').toLowerCase();
+  const layers   = [...sym.querySelectorAll(':scope > layer')].filter(l => l.getAttribute('enabled') !== '0');
+  if (!layers.length) return [defStyle()];
+
+  if (symType === 'line') {
+    const lineStyles = [];
+    for (const layerEl of layers) {
+      const ltype = (layerEl.getAttribute('class') || '').toLowerCase();
+      if (ltype === 'simpleline' || ltype === 'line' || ltype === '') {
+        lineStyles.push(parseSimpleLine(layerEl, symAlpha));
+      }
+    }
+    return lineStyles.length ? lineStyles : [defStyle()];
+  }
+
+  const fillStyles = [];
+
+  for (const layerEl of layers) {
+    const ltype = (layerEl.getAttribute('class') || layerEl.getAttribute('type') || '').toLowerCase();
+    const p = readProps(layerEl);
+
+    if (ltype.includes('linepattern') || ltype === 'linepatternfill') {
+      const angle    = parseFloat(p['line_angle']    || p['angle']    || '45');
+      const distance = parseFloat(p['line_distance'] || p['distance'] || '2');
+      const lw       = parseFloat(p['line_width']    || p['width']    || '0.26');
+      let lineColor;
+      const subSym = layerEl.querySelector('symbol');
+      if (subSym) {
+        const sub = symbolToStyle(subSym);
+        lineColor = (sub[0] && sub[0].color) || '#000';
+      } else {
+        const lc = qColor(p['line_color'] || '0,0,0,255');
+        lineColor = lc.a === 0 ? qColor(p['color'] || '0,0,0,255').hex : lc.hex;
+      }
+      const url = makeHatch(angle, distance, lw, lineColor, null);
+      if (url) fillStyles.push({
+        color:'rgba(0,0,0,0)', weight:0, opacity:0,
+        fillColor:url, fillOpacity:symAlpha,
+        radius:5, dashArray:null
+      });
+      continue;
+    }
+
+    if (ltype.includes('svgfill') || ltype.includes('pointpattern')) {
+      const dist = parseFloat(p['distance_x'] || p['distance'] || '3');
+      const col  = qColor(p['color'] || '0,0,0,255');
+      const url  = makeCrossHatch(0, dist, 0.5, col.hex);
+      if (url) fillStyles.push({
+        color:'rgba(0,0,0,0)', weight:0, opacity:0,
+        fillColor:url, fillOpacity:symAlpha,
+        radius:5, dashArray:null
+      });
+      continue;
+    }
+
+    if (ltype === '' || ltype === 'simplefill' || ltype === 'fill') {
+      const fillStyle = p['style'] || p['brush_style'] || 'solid';
+      const fill   = qColor(p['color'] || p['fillColor'] || '128,128,128,255');
+      const stroke = qColor(p['outline_color'] || p['color_border'] || p['line_color'] || '0,0,0,255');
+      const outW   = parseFloat(p['outline_width'] || '0.26');
+      const outStyle = p['outline_style'] || p['border_style'] || 'solid';
+      const wPx    = Math.max(0.5, outW * 3.78);
+      fillStyles.push({
+        color:    stroke.hex,
+        weight:   wPx,
+        opacity:  (stroke.a / 255) * symAlpha,
+        fillColor: fill.hex,
+        fillOpacity: (fillStyle === 'no' || fillStyle === 'NoBrush' || fill.a === 0)
+                       ? 0 : (fill.a / 255) * symAlpha,
+        dashArray: penStyleToDash(outStyle, wPx),
+        radius: 5
+      });
+      continue;
+    }
+
+    if (ltype === 'simpleline' || ltype === 'line') {
+      fillStyles.push(parseSimpleLine(layerEl, symAlpha));
+      continue;
+    }
+
+    if (ltype === 'simplemarker' || ltype === 'marker') {
+      const fill   = qColor(p['color'] || p['fillColor'] || '128,128,128,255');
+      const stroke = qColor(p['outline_color'] || p['color_border'] || '0,0,0,255');
+      fillStyles.push({
+        fillColor:   fill.hex,
+        fillOpacity: (fill.a / 255) * symAlpha,
+        color:       stroke.hex,
+        weight:      parseFloat(p['outline_width'] || '0.4') * 3.78,
+        opacity:     (stroke.a / 255) * symAlpha,
+        radius:      Math.max(2, Math.min(parseFloat(p['size'] || '2') * 1.8, 20)),
+        dashArray:   null
+      });
+      continue;
+    }
+  }
+  return fillStyles.length ? fillStyles : [defStyle()];
+}
+
+function penStyleToDash(pen, weight) {
+  const w = Math.max(0.5, weight);
+  switch(pen) {
+    case 'dash':         return `${4*w},${2*w}`;
+    case 'dot':          return `${w},${2*w}`;
+    case 'dash dot':     return `${4*w},${2*w},${w},${2*w}`;
+    case 'dash dot dot': return `${4*w},${2*w},${w},${2*w},${w},${2*w}`;
+    default:             return null;
+  }
+}
+
+function defStyle() {
+  return { color:'#666', weight:1.5, opacity:.85, fillColor:'#999', fillOpacity:.25, radius:5, dashArray:null };
+}
+
+function qColor(str) {
+  str = (str||'').trim();
+  if (str.includes(',')) {
+    const [r=0,g=0,b=0,a=255] = str.split(',').map(s=>parseInt(s,10));
+    return { r,g,b,a, hex:`rgba(${r},${g},${b},${(a/255).toFixed(2)})` };
+  }
+  if (str.startsWith('#') && str.length===9) {
+    const a=parseInt(str.slice(1,3),16), r=parseInt(str.slice(3,5),16), g=parseInt(str.slice(5,7),16), b=parseInt(str.slice(7,9),16);
+    return { r,g,b,a, hex:`rgba(${r},${g},${b},${(a/255).toFixed(2)})` };
+  }
+  if (str.startsWith('#') && str.length===7) {
+    const r=parseInt(str.slice(1,3),16), g=parseInt(str.slice(3,5),16), b=parseInt(str.slice(5,7),16);
+    return { r,g,b,a:255, hex:str };
+  }
+  return { r:128,g:128,b:128,a:255, hex:'#808080' };
+}
+
+function symMap(renderer) {
+  const m = {};
+  for (const s of renderer.querySelectorAll(':scope > symbols > symbol'))
+    m[s.getAttribute('name')] = symbolToStyle(s);
+  return m;
+}
+
+function buildSingleStyler(r) {
+  const styles = symbolToStyle(r.querySelector(':scope > symbols > symbol'));
+  return () => styles;
+}
+function buildCategorizedStyler(r) {
+  const attr = r.getAttribute('attr'), sm = symMap(r), cm = {};
+  for (const c of r.querySelectorAll('categories > category'))
+    cm[c.getAttribute('value')] = c.getAttribute('symbol');
+  for (const [val, symKey] of Object.entries(cm)) {
+    const styles = sm[symKey];
+    if (!styles) continue;
+    const summary = styles.map((s,i) => {
+      const fc = s.fillColor||'none';
+      const fo = (s.fillOpacity||0).toFixed(2);
+      const sc = s.color||'none';
+      const lbl = fc.startsWith('url(') ? `hatch(${fc.slice(4,-1)})` : `fill=${fc}`;
+      return `[${i}] ${lbl} fo=${fo} stroke=${sc} w=${(s.weight||0).toFixed(1)}`;
+    }).join(' | ');
+    dlog(`  cat "${val}" → ${styles.length} pass(es): ${summary}`);
+  }
+  return (p) => {
+    const v = String(p[attr] ?? '');
+    const symKey = cm.hasOwnProperty(v) ? cm[v] : cm[''];
+    return (symKey !== undefined ? sm[symKey] : null) || [defStyle()];
+  };
+}
+function buildGraduatedStyler(r) {
+  const attr = r.getAttribute('attr'), sm = symMap(r);
+  const ranges = [...r.querySelectorAll('ranges > range')].map(el => ({
+    lo:parseFloat(el.getAttribute('lower')), hi:parseFloat(el.getAttribute('upper')), sym:el.getAttribute('symbol')
+  }));
+  return (p) => { const v=parseFloat(p[attr]); const rng=ranges.find(r=>v>=r.lo&&v<=r.hi); return rng?(sm[rng.sym]||[defStyle()]):[defStyle()]; };
+}
+function buildRuleStyler(r) {
+  const sm = symMap(r), rules = [];
+  const collect = (el) => {
+    for (const rule of el.querySelectorAll(':scope > rules > rule, :scope > rule')) {
+      rules.push({ filter:(rule.getAttribute('filter')||'').trim(), sym:rule.getAttribute('symbol') });
+      collect(rule);
+    }
+  };
+  collect(r);
+  return (p) => {
+    for (const rule of rules) {
+      if (!rule.filter || rule.filter==='ELSE' || evalFilter(rule.filter,p))
+        if (rule.sym && sm[rule.sym]) return sm[rule.sym];
+    }
+    return [defStyle()];
+  };
+}
+function evalFilter(filter, props) {
+  try {
+    let e = filter
+      .replace(/"([^"]+)"/g,(_,f)=>{ const v=props[f]; return v===null||v===undefined?'null':typeof v==='number'?v:`"${String(v).replace(/"/g,'\\"')}"`; })
+      .replace(/'([^']*)'/g,(_,s)=>`"${s}"`)
+      .replace(/\bAND\b/g,'&&').replace(/\bOR\b/g,'||').replace(/\bNOT\b/g,'!')
+      .replace(/\bIS NULL\b/g,'===null').replace(/\bIS NOT NULL\b/g,'!==null');
+    return !!Function('"use strict";return('+e+')')();
+  } catch(e){ return false; }
+}
+
+// ═══ Label helpers ════════════════════════════════════════════════════════════
+function geomCentroid(geom) {
+  if (!geom) return null;
+  switch(geom.type) {
+    case 'Point': return geom.coordinates;
+    case 'MultiPoint': return geom.coordinates[0];
+    case 'LineString': return midpoint(geom.coordinates);
+    case 'MultiLineString': return midpoint(geom.coordinates[0]);
+    case 'Polygon': return ringCentroid(geom.coordinates[0]);
+    case 'MultiPolygon': {
+      let best = null, bestArea = -1;
+      for (const poly of geom.coordinates) {
+        const a = Math.abs(ringArea(poly[0]));
+        if (a > bestArea) { bestArea = a; best = poly[0]; }
+      }
+      return best ? ringCentroid(best) : null;
+    }
+    case 'GeometryCollection':
+      return geom.geometries.length ? geomCentroid(geom.geometries[0]) : null;
+    default: return null;
+  }
+}
+
+function midpoint(coords) {
+  const i = Math.floor(coords.length / 2);
+  return coords[i];
+}
+
+function ringCentroid(ring) {
+  if (!ring || ring.length < 3) return null;
+  let x = 0, y = 0, area = 0;
+  const n = ring.length;
+  for (let i = 0; i < n - 1; i++) {
+    const [x0,y0] = ring[i], [x1,y1] = ring[i+1];
+    const cross = x0*y1 - x1*y0;
+    area += cross;
+    x += (x0+x1)*cross;
+    y += (y0+y1)*cross;
+  }
+  area /= 2;
+  if (Math.abs(area) < 1e-12) {
+    let ax=0,ay=0;
+    for(const[cx,cy]of ring){ax+=cx;ay+=cy;}
+    return [ax/(ring.length),ay/(ring.length)];
+  }
+  return [x/(6*area), y/(6*area)];
+}
+
+function ringArea(ring) {
+  let a = 0;
+  for (let i=0,n=ring.length-1; i<n; i++) a += ring[i][0]*ring[i+1][1] - ring[i+1][0]*ring[i][1];
+  return a/2;
+}
+
+function buildLabelMarker(text, latlng, labelConfig) {
+  const cfg = labelConfig;
+  const fs = cfg.fontSize || 10;
+  let textShadow = '';
+  if (cfg.bufferOn) {
+    const b = cfg.bufferColor;
+    const s = Math.max(1, cfg.bufferSize);
+    textShadow = `${s}px ${s}px 0 ${b}, -${s}px ${s}px 0 ${b}, ${s}px -${s}px 0 ${b}, -${s}px -${s}px 0 ${b}, 0 ${s}px 0 ${b}, 0 -${s}px 0 ${b}, ${s}px 0 0 ${b}, -${s}px 0 0 ${b}`;
+  }
+  const fontStyle = [
+    cfg.bold   ? 'font-weight:700' : '',
+    cfg.italic ? 'font-style:italic' : '',
+    `font-size:${fs}px`,
+    `color:${cfg.color}`,
+    textShadow ? `text-shadow:${textShadow}` : '',
+    `font-family:${cfg.fontFamily},'Trebuchet MS',sans-serif`,
+    'white-space:nowrap',
+    'pointer-events:none',
+    'line-height:1'
+  ].filter(Boolean).join(';');
+  const icon = L.divIcon({
+    className: 'feat-label',
+    html: `<span style="${fontStyle}">${text}</span>`,
+    iconAnchor: [0,0]
+  });
+  return L.marker(latlng, { icon, interactive:false, keyboard:false, zIndexOffset:-100 });
+}
+
+// ═══ State ════════════════════════════════════════════════════════════════════
+const COLORS = ['#8b1e1e','#a0522d','#c46200','#1a6b3c','#6a1a8b','#1a6b6b','#4a7a00','#8b5a00'];
+let LAYERS = {}, totalFeatures = 0, qmlTargetTable = null;
+let SQL = null;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STILLINGAR — Skrár sem hlaðast sjálfkrafa
+// ═══════════════════════════════════════════════════════════════════════════════
+const AUTO_GPKG_URLS = [
+  'Landnotkun.gpkg',
+];
+
+const AUTO_QML = {
+  'Landnotkun':            'Landnotkun.qml',
+  'Landnotkun hringtákn':  'Landnotkun_hringtákn.qml',
+  'Innviðir':              'Innviðir.qml',
+  'Sérákvæði':             'Sérákvæði.qml',
+};
+
+// Per-layer label expression configuration
+const LABEL_EXPRESSIONS = {
+  'Landnotkun': (attrs) => {
+    const flokkur = (attrs['flokkur'] != null) ? String(attrs['flokkur']) : '';
+    const numer   = attrs['numer'];
+    const numerStr = (numer === null || numer === undefined ||
+                      numer === 0 || numer === '0' ||
+                      (typeof numer === 'number' && numer === 0)) ? '' : String(numer);
+    const result = flokkur + numerStr;
+    return result.trim() !== '' ? result : null;
+  },
+  'Landnotkun hringtákn': (attrs) => {
+    const flokkur = (attrs['flokkur'] != null) ? String(attrs['flokkur']) : '';
+    const numer   = attrs['numer'];
+    const numerStr = (numer === null || numer === undefined ||
+                      numer === 0 || numer === '0' ||
+                      (typeof numer === 'number' && numer === 0)) ? '' : String(numer);
+    const result = flokkur + numerStr;
+    return result.trim() !== '' ? result : null;
+  },
+  'Innviðir': (attrs) => {
+    const undirFl = (attrs['undirFl'] != null) ? String(attrs['undirFl']) : '';
+    const heiti   = (attrs['heiti'] != null && attrs['heiti'] !== '') ? String(attrs['heiti']) : '';
+    if (heiti) return heiti;
+    return undirFl.trim() !== '' ? undirFl : null;
+  },
+  'Sérákvæði': (attrs) => {
+    const flokkur = (attrs['flokkur'] != null) ? String(attrs['flokkur']) : '';
+    const numer   = attrs['numer'];
+    const numerStr = (numer === null || numer === undefined ||
+                      numer === 0 || numer === '0' ||
+                      (typeof numer === 'number' && numer === 0)) ? '' : String(numer);
+    const result = flokkur + numerStr;
+    return result.trim() !== '' ? result : null;
+  },
+};
+// ═══════════════════════════════════════════════════════════════════════════════
+
+window.addEventListener('load', () => {
+  if (typeof initSqlJs === 'undefined') { dlog('sql-wasm.js hleðst ekki!','err'); return; }
+  initSqlJs({ locateFile:()=>'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.wasm' })
+    .then(S => {
+      SQL=S; dlog('SQL.js ✓','ok');
+      document.getElementById('open-btn').disabled=false;
+      document.getElementById('file-name-display').textContent='Engin skrá valin…';
+      if (AUTO_GPKG_URLS && AUTO_GPKG_URLS.length) autoLoadAllGPKGs();
+    })
+    .catch(e=>dlog('SQL.js: '+e.message,'err'));
+});
+
+async function autoLoadAllGPKGs() {
+  Object.values(LAYERS).forEach(l=>{try{map.removeLayer(l.group);map.removeLayer(l.labelGroup);}catch(e){}});
+  LAYERS={}; totalFeatures=0;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('dlog').innerHTML='';
+
+  for (const url of AUTO_GPKG_URLS) {
+    try {
+      document.getElementById('load-msg').textContent = 'Hleð ' + url + '…';
+      document.getElementById('file-name-display').textContent = 'Hleð ' + url + '…';
+      dlog('Sæki GPKG: ' + url);
+      const resp = await fetch(url);
+      if (!resp.ok) { dlog('HTTP ' + resp.status + ' – ' + url, 'err'); continue; }
+      const buf = await resp.arrayBuffer();
+      dlog('Sótt ' + url + ': ' + (buf.byteLength/1024).toFixed(0) + ' KB', 'ok');
+      parseGPKG(new Uint8Array(buf), /*additive=*/true);
+    } catch(e) {
+      dlog('Villa hlöðun ' + url + ': ' + e.message, 'err');
+    }
+  }
+
+  await autoLoadQMLs();
+  finalizeLayers();
+}
+
+async function autoLoadQMLs() {
+  for (const [table, qmlUrl] of Object.entries(AUTO_QML)) {
+    if (!LAYERS[table]) { dlog('QML: lag "' + table + '" finnst ekki, sleppir'); continue; }
+    try {
+      const encodedUrl = encodeURI(qmlUrl);
+      dlog('Sæki QML: ' + qmlUrl);
+      const resp = await fetch(encodedUrl);
+      if (!resp.ok) { dlog('QML ' + qmlUrl + ': HTTP ' + resp.status, 'err'); continue; }
+      const text = await resp.text();
+      const {styler, labelConfig} = parseQML(text);
+      const lo = LAYERS[table];
+      lo.qmlStyler = styler;
+      lo.qmlName   = qmlUrl;
+      if (labelConfig) {
+        lo.labelConfig = labelConfig;
+        if (labelConfig.fieldName) {
+          lo.labelFields = [labelConfig.fieldName];
+          dlog('Label dálkur "' + table + '": ' + labelConfig.fieldName, 'ok');
+        }
+      }
+      redrawLayer(table);
+      updateCtrlRow(table);
+      dlog('QML hlaðið: ' + qmlUrl + ' → ' + table, 'ok');
+    } catch(e) {
+      dlog('QML villa (' + qmlUrl + '): ' + e.message, 'err');
+    }
+  }
+}
+
+// ═══ OSM Buildings (on-demand, black) ═════════════════════════════════════════
+let _osmBuildingsGroup = null;
+let _osmBuildingsBbox  = null;
+let _osmBuildingsOn = false;
+
+function toggleOSMBuildings() {
+  _osmBuildingsOn = !_osmBuildingsOn;
+  if (_osmBuildingsOn) {
+    if (!_osmBuildingsGroup) _osmBuildingsGroup = L.layerGroup().addTo(map);
+    else _osmBuildingsGroup.addTo(map);
+    loadOSMBuildings();
+  } else {
+    if (_osmBuildingsGroup) map.removeLayer(_osmBuildingsGroup);
+  }
+  return _osmBuildingsOn;
+}
+
+
+async function loadOSMBuildings() {
+  const zoom = map.getZoom();
+  const msg = document.getElementById('osm-bldg-msg');
+  if (zoom < 13) {
+    if (msg) { msg.textContent = 'Þysjaðu inn á svæðið (zoom ≥ 13)'; msg.style.display='block'; }
+    return;
+  }
+  if (msg) msg.style.display = 'none';
+  if (_osmInflight) return;
+  const b = map.getBounds();
+  const bboxStr = [b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(v=>v.toFixed(5)).join(',');
+  if (bboxStr === _osmBuildingsBbox) return;
+  _osmBuildingsBbox = bboxStr;
+  _osmInflight = true;
+  if (_osmBuildingsGroup) _osmBuildingsGroup.clearLayers();
+  dlog('Sæki OSM byggingar…');
+  const query = `[out:json][timeout:25];(way["building"](${bboxStr});relation["building"](${bboxStr}););out body;>;out skel qt;`;
+  try {
+    const resp = await fetch('https://overpass-api.de/api/interpreter', {
+      method:'POST', body: 'data='+encodeURIComponent(query)
+    });
+    if (resp.status === 429) {
+      _osmBuildingsBbox = null;
+      _osmBackoff = Math.min((_osmBackoff||0) + 8000, 60000);
+      throw new Error('HTTP 429 – of margar beiðnir, bíð '+(_osmBackoff/1000)+'s');
+    }
+    _osmBackoff = 0;
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    const data = await resp.json();
+    const geojson = osmToGeoJSON(data);
+    let count = 0;
+    for (const feat of geojson.features) {
+      if (!feat.geometry) continue;
+      L.geoJSON(feat, {
+        style: () => ({ color:'#1a1a1a', weight:0.8, opacity:.9, fillColor:'#333', fillOpacity:.3 }),
+        onEachFeature: (f, layer) => {
+          layer.on('click', () => {
+            const attrs = f.properties || {};
+            showMultiInfo([{ tableName:'buildings', attrs }]);
+          });
+        }
+      }).addTo(_osmBuildingsGroup);
+      count++;
+    }
+    dlog('OSM byggingar: '+count+' ✓','ok');
+  } catch(e) { dlog('OSM villa: '+e.message,'err'); }
+  finally { _osmInflight = false; }
+}
+
+function osmToGeoJSON(osm) {
+  const nodes = {};
+  for (const el of osm.elements) if (el.type==='node') nodes[el.id] = [el.lon, el.lat];
+  const features = [];
+  for (const el of osm.elements) {
+    if (el.type !== 'way' || !el.nodes) continue;
+    const coords = el.nodes.map(nid => nodes[nid]).filter(Boolean);
+    if (coords.length < 3) continue;
+    features.push({ type:'Feature', geometry:{ type:'Polygon', coordinates:[coords] }, properties: el.tags||{} });
+  }
+  return { type:'FeatureCollection', features };
+}
+
+let _osmMoveTimer = null;
+let _osmInflight  = false;
+let _osmBackoff   = 0;
+
+map.on('moveend', () => {
+  if (!_osmBuildingsOn || map.getZoom() < 13) return;
+  clearTimeout(_osmMoveTimer);
+  _osmMoveTimer = setTimeout(() => {
+    if (_osmInflight) return;
+    _osmBuildingsBbox = null;
+    loadOSMBuildings();
+  }, 1500 + _osmBackoff);
+});
+
+function buildExtSidebar() {
+  const list = document.getElementById('layer-list');
+  list.innerHTML = '';
+
+  const gpkgTables = Object.keys(LAYERS);
+  if (gpkgTables.length) {
+    const div = document.createElement('div');
+    div.className = 'sb-divider';
+    div.textContent = 'Skipulagsgögn';
+    list.appendChild(div);
+
+    const section = document.createElement('div');
+    section.className = 'wms-section';
+    for (const tbl of gpkgTables) {
+      const lo = LAYERS[tbl];
+      const btn = document.createElement('button');
+      btn.className = 'wms-btn on';
+      btn.id = 'gpkg-tog-' + tbl;
+      btn.dataset.table = tbl;
+      btn.innerHTML = `<span class="wms-dot"></span><span class="wms-label">${lo.name || tbl}</span><span class="wms-meta">${lo.features.length} þ.</span>`;
+      btn.addEventListener('click', () => {
+        const isOn = btn.classList.toggle('on');
+        if (isOn) {
+          lo.group.addTo(map);
+          if (lo.labelsOn) lo.labelGroup.addTo(map);
+        } else {
+          map.removeLayer(lo.group);
+          map.removeLayer(lo.labelGroup);
+        }
+      });
+      section.appendChild(btn);
+    }
+    list.appendChild(section);
+  }
+
+  const bgDiv = document.createElement('div');
+  bgDiv.className = 'sb-divider';
+  bgDiv.textContent = 'Bakgrunnslög';
+  list.appendChild(bgDiv);
+
+  const bgSection = document.createElement('div');
+  bgSection.className = 'wms-section';
+
+  const osmBtn = document.createElement('button');
+  osmBtn.className = 'wms-btn' + (_osmBuildingsOn ? ' on' : '');
+  osmBtn.id = 'osm-buildings-btn';
+  osmBtn.innerHTML = `<span class="wms-dot"></span><span class="wms-label">Byggingar (OSM)</span><span class="wms-meta">Overpass API</span>`;
+  osmBtn.addEventListener('click', () => {
+    const isOn = toggleOSMBuildings();
+    osmBtn.classList.toggle('on', isOn);
+  });
+  bgSection.appendChild(osmBtn);
+  list.appendChild(bgSection);
+}
+
+
+function finalizeLayers() {
+  const allLayers = Object.values(LAYERS).map(lo => ({ table: lo.table, name: lo.name }));
+  buildExtSidebar();
+  const total = Object.values(LAYERS).reduce((s,lo)=>s+lo.features.length,0);
+  document.getElementById('stat-features').textContent = total.toLocaleString('is');
+  document.getElementById('stat-layers').textContent = allLayers.length + 1;
+  fitAll();
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('file-name-display').textContent =
+    AUTO_GPKG_URLS.length > 1 ? AUTO_GPKG_URLS.join(', ') : (AUTO_GPKG_URLS[0] || 'Hlaðið');
+  if (!allLayers.length) document.getElementById('empty-state').classList.remove('hidden');
+
+  flushPatterns();
+  for (const tbl of Object.keys(LAYERS)) {
+    if (LAYERS[tbl].qmlStyler) { LAYERS[tbl].group.clearLayers(); for(const{geojson,attrs}of LAYERS[tbl].features) addFeatureToGroup(geojson,attrs,LAYERS[tbl].color,LAYERS[tbl].qmlStyler,LAYERS[tbl].group,tbl); }
+  }
+  flushPatterns();
+
+  for (const tbl of Object.keys(LAYERS)) {
+    const lo = LAYERS[tbl];
+    if (LABEL_EXPRESSIONS[tbl]) {
+      lo.labelExpr = LABEL_EXPRESSIONS[tbl];
+    } else {
+      lo.labelExpr = (attrs) => {
+        const flokkur = (attrs['flokkur'] != null) ? String(attrs['flokkur']) : '';
+        const numer   = attrs['numer'];
+        const numerStr = (numer === null || numer === undefined ||
+                          numer === 0 || numer === '0' ||
+                          (typeof numer === 'number' && numer === 0)) ? '' : String(numer);
+        const result = flokkur + numerStr;
+        return result.trim() !== '' ? result : null;
+      };
+    }
+    if (tbl === 'Innviðir') {
+      lo.labelsOn = false;
+    } else {
+      lo.labelsOn = true;
+      lo.labelGroup.addTo(map);
+      rebuildLabels(tbl);
+    }
+  }
+}
+
+  // Auto-enable OSM Buildings
+  _osmBuildingsOn = true;
+  _osmBuildingsGroup = L.layerGroup().addTo(map);
+  loadOSMBuildings();
+  const osmBtnEl = document.getElementById('osm-buildings-btn');
+  if (osmBtnEl) osmBtnEl.classList.add('on');
+
+
+// ═══ File events ══════════════════════════════════════════════════════════════
+document.getElementById('file-input').addEventListener('change', e=>{ if(e.target.files[0]) loadGPKGFile(e.target.files[0]); });
+document.getElementById('qml-input-global').addEventListener('change', e=>{ if(e.target.files[0]&&qmlTargetTable) loadQMLFile(e.target.files[0],qmlTargetTable); e.target.value=''; });
+const mc = document.getElementById('map-container');
+mc.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('drop-overlay').classList.add('visible');});
+mc.addEventListener('dragleave',()=>document.getElementById('drop-overlay').classList.remove('visible'));
+mc.addEventListener('drop',e=>{e.preventDefault();document.getElementById('drop-overlay').classList.remove('visible');if(e.dataTransfer.files[0])loadGPKGFile(e.dataTransfer.files[0]);});
+document.body.addEventListener('dragover',e=>e.preventDefault());
+
+// ═══ Load GPKG ════════════════════════════════════════════════════════════════
+function loadGPKGFile(file) {
+  if (!SQL) { dlog('SQL.js ekki tilbúið!','err'); return; }
+  document.getElementById('file-name-display').textContent = file.name;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('dlog').innerHTML = '';
+  document.getElementById('debug').style.display = '';
+  dlog('Opnar: '+file.name+' ('+(file.size/1024).toFixed(0)+' KB)');
+  const r = new FileReader();
+  r.onload = e => { try { LAYERS={}; totalFeatures=0; parseGPKG(new Uint8Array(e.target.result)); } catch(err) { dlog('Villa: '+err.message,'err'); document.getElementById('loading').classList.remove('visible'); } };
+  r.readAsArrayBuffer(file);
+}
+
+// ═══ Parse GPKG ═══════════════════════════════════════════════════════════════
+function parseGPKG(data, additive=false) {
+  let db;
+  try { db=new SQL.Database(data); dlog('SQLite ✓','ok'); }
+  catch(e) { dlog('SQLite: '+e.message,'err'); document.getElementById('loading').classList.remove('visible'); return; }
+
+  detectProjection(db);
+
+  let layers=[];
+  try {
+    const r=db.exec("SELECT table_name, identifier FROM gpkg_contents WHERE data_type='features'");
+    if(r[0]&&r[0].values.length){ layers=r[0].values.map(v=>({table:v[0],name:v[1]||v[0]})); dlog('Lög: '+layers.map(l=>l.name).join(', '),'ok'); }
+  } catch(e) { dlog('gpkg_contents: '+e.message,'err'); }
+
+  if (!layers.length) {
+    try {
+      const t=db.exec("SELECT name FROM sqlite_master WHERE type='table'");
+      if(t[0]) for(const[tn]of t[0].values){try{const ci=db.exec(`PRAGMA table_info("${tn}")`);if(ci[0]&&ci[0].values.some(c=>/geom|geometry|shape|wkb/i.test(c[1])))layers.push({table:tn,name:tn});}catch(e2){}}
+    }catch(e){}
+  }
+
+  if (!additive) {
+    Object.values(LAYERS).forEach(l=>{try{map.removeLayer(l.group);map.removeLayer(l.labelGroup);}catch(e){}});
+    LAYERS={}; totalFeatures=0;
+  }
+
+  if (!layers.length) { dlog('Engin lög!','err'); if(!additive) document.getElementById('loading').classList.remove('visible'); return; }
+
+  for (let i=0; i<layers.length; i++) {
+    const layer=layers[i], color=COLORS[(Object.keys(LAYERS).length)%COLORS.length];
+    document.getElementById('load-msg').textContent='Les: '+layer.name;
+
+    let geomCol=null;
+    try{const gc=db.exec(`SELECT column_name FROM gpkg_geometry_columns WHERE table_name='${layer.table}'`);if(gc[0]&&gc[0].values.length)geomCol=gc[0].values[0][0];}catch(e){}
+    if(!geomCol){try{const ci=db.exec(`PRAGMA table_info("${layer.table}")`);if(ci[0]){const c=ci[0].values.find(c=>/geom|geometry|shape|wkb/i.test(c[1]));if(c)geomCol=c[1];}}catch(e){}}
+    if(!geomCol){dlog(`"${layer.name}": geom dálkur finnst ekki!`,'err');continue;}
+
+    let attrCols=[];
+    try{const ci=db.exec(`PRAGMA table_info("${layer.table}")`);if(ci[0])attrCols=ci[0].values.filter(c=>c[1]!==geomCol&&!/^(fid|ogc_fid)$/i.test(c[1])).map(c=>c[1]);}catch(e){}
+
+    let rows=null;
+    try{const sel=[`"${geomCol}"`,...attrCols.map(c=>`"${c}"`)].join(',');const res=db.exec(`SELECT ${sel} FROM "${layer.table}" LIMIT 10000`);if(res[0])rows=res[0].values;}
+    catch(e){try{const res=db.exec(`SELECT "${geomCol}" FROM "${layer.table}" LIMIT 10000`);if(res[0]){rows=res[0].values;attrCols=[];}}catch(e2){dlog(`Gat ekki sótt "${layer.name}": `+e2.message,'err');continue;}}
+
+    const features=[]; let ok=0,skip=0,fail=0;
+    if(rows){for(const row of rows){const blob=row[0];if(blob===null||blob===undefined){skip++;continue;}try{const geojson=gpkgBlobToGeoJSON(blob);if(!geojson){skip++;continue;}reprojectGeometry(geojson);const attrs={};attrCols.forEach((c,idx)=>attrs[c]=row[idx+1]);features.push({geojson,attrs});ok++;}catch(e){fail++;}}}
+    dlog(`"${layer.name}": ${ok} ✓, ${skip} tóm, ${fail} villa`, ok>0?'ok':'err');
+
+    const group=L.layerGroup().addTo(map);
+    const labelGroup=L.layerGroup();
+    LAYERS[layer.table]={group,labelGroup,color,name:layer.name,table:layer.table,attrCols,features,qmlStyler:null,labelConfig:null,labelFields:[],labelSep:' ',labelsOn:false,qmlName:null,labelExpr:null};
+
+    for(const{geojson,attrs}of features) addFeatureToGroup(geojson,attrs,color,null,group,layer.table);
+    totalFeatures+=features.length;
+  }
+
+  db.close();
+  totalFeatures += Object.values(LAYERS).reduce((s,lo)=>s+lo.features.length,0) - totalFeatures;
+  dlog('Hlaðið úr GPKG: '+layers.map(l=>l.name).join(', '),'ok');
+  if (!additive) finalizeLayers();
+}
+
+// ═══ Reprojection ═════════════════════════════════════════════════════════════
+function reprojectGeometry(geom) {
+  if (!toWGS84) return;
+  const rp = c => toWGS84(c[0],c[1]);
+  switch(geom.type) {
+    case 'Point':            geom.coordinates = rp(geom.coordinates); break;
+    case 'MultiPoint':
+    case 'LineString':       geom.coordinates = geom.coordinates.map(rp); break;
+    case 'MultiLineString':
+    case 'Polygon':          geom.coordinates = geom.coordinates.map(r=>r.map(rp)); break;
+    case 'MultiPolygon':     geom.coordinates = geom.coordinates.map(p=>p.map(r=>r.map(rp))); break;
+    case 'GeometryCollection': geom.geometries.forEach(g=>reprojectGeometry(g)); break;
+  }
+}
+
+// ═══ WKB ══════════════════════════════════════════════════════════════════════
+function gpkgBlobToGeoJSON(blob) {
+  const buf=(blob instanceof Uint8Array)?blob:new Uint8Array(blob);
+  if(buf.length<8||buf[0]!==0x47||buf[1]!==0x50) return null;
+  const flags=buf[3],envInd=(flags>>1)&0x07,isEmpty=(flags>>4)&0x01;
+  if(isEmpty) return null;
+  const envBytes=[0,4,6,6,8][envInd<5?envInd:0]*8;
+  const wkbStart=8+envBytes;
+  if(buf.length<=wkbStart+5) return null;
+  const r=readWKB(buf,wkbStart);
+  return r?r.geom:null;
+}
+function readWKB(buf,pos){
+  const dv=new DataView(buf.buffer,buf.byteOffset);
+  if(pos+5>buf.length)return null;
+  const le=dv.getUint8(pos)===1;pos++;
+  const raw=le?dv.getUint32(pos,true):dv.getUint32(pos,false);pos+=4;
+  let bt,hasZ=false,hasM=false;
+  if(raw>=3000&&raw<4000){bt=raw-3000;hasZ=true;hasM=true;}
+  else if(raw>=2000&&raw<3000){bt=raw-2000;hasM=true;}
+  else if(raw>=1000&&raw<2000){bt=raw-1000;hasZ=true;}
+  else if(raw>1000000){bt=raw&0xFFFF;hasZ=!!(raw&0x80000000);hasM=!!(raw&0x40000000);}
+  else{bt=raw;}
+  const ptB=(2+(hasZ?1:0)+(hasM?1:0))*8;
+  const rd=(at)=>le?dv.getFloat64(at,true):dv.getFloat64(at,false);
+  const ru=(at)=>le?dv.getUint32(at,true):dv.getUint32(at,false);
+  const pt=(at)=>[rd(at),rd(at+8)];
+  try{
+    switch(bt){
+      case 1:{const c=pt(pos);return{geom:{type:'Point',coordinates:c},end:pos+ptB};}
+      case 2:{const n=ru(pos);pos+=4;const cs=[];for(let i=0;i<n;i++){cs.push(pt(pos));pos+=ptB;}return{geom:{type:'LineString',coordinates:cs},end:pos};}
+      case 3:{const nr=ru(pos);pos+=4;const rings=[];for(let r=0;r<nr;r++){const n=ru(pos);pos+=4;const ring=[];for(let i=0;i<n;i++){ring.push(pt(pos));pos+=ptB;}rings.push(ring);}return{geom:{type:'Polygon',coordinates:rings},end:pos};}
+      case 4:{const n=ru(pos);pos+=4;const ps=[];for(let i=0;i<n;i++){const s=readWKB(buf,pos);if(!s)break;ps.push(s.geom.coordinates);pos=s.end;}return{geom:{type:'MultiPoint',coordinates:ps},end:pos};}
+      case 5:{const n=ru(pos);pos+=4;const ls=[];for(let i=0;i<n;i++){const s=readWKB(buf,pos);if(!s)break;ls.push(s.geom.coordinates);pos=s.end;}return{geom:{type:'MultiLineString',coordinates:ls},end:pos};}
+      case 6:{const n=ru(pos);pos+=4;const ms=[];for(let i=0;i<n;i++){const s=readWKB(buf,pos);if(!s)break;ms.push(s.geom.coordinates);pos=s.end;}return{geom:{type:'MultiPolygon',coordinates:ms},end:pos};}
+      case 7:{const n=ru(pos);pos+=4;const gs=[];for(let i=0;i<n;i++){const s=readWKB(buf,pos);if(!s)break;gs.push(s.geom);pos=s.end;}return{geom:{type:'GeometryCollection',geometries:gs},end:pos};}
+      default:return null;
+    }
+  }catch(e){return null;}
+}
+
+// ═══ Point-in-polygon helpers ════════════════════════════════════════════════
+function _pipRings(pt, rings) {
+  const [x, y] = pt;
+  let inside = false;
+  const outer = rings[0];
+  for (let i = 0, j = outer.length - 1; i < outer.length; j = i++) {
+    const [xi, yi] = outer[i], [xj, yj] = outer[j];
+    if (((yi > y) !== (yj > y)) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function _latlngInGeom(latlng, geom) {
+  if (!geom) return false;
+  const pt = [latlng.lng, latlng.lat];
+  switch (geom.type) {
+    case 'Polygon':      return _pipRings(pt, geom.coordinates);
+    case 'MultiPolygon': return geom.coordinates.some(poly => _pipRings(pt, poly));
+    default: return false;
+  }
+}
+
+map.on('click', function(e) {
+  const hits = [];
+  for (const [tableName, lo] of Object.entries(LAYERS)) {
+    if (!map.hasLayer(lo.group)) continue;
+    for (const {geojson, attrs} of lo.features) {
+      if (_latlngInGeom(e.latlng, geojson)) hits.push({tableName, attrs});
+    }
+  }
+  if (hits.length) showMultiInfo(hits);
+});
+
+// ═══ Feature rendering ════════════════════════════════════════════════════════
+function addFeatureToGroup(geojson, attrs, fallbackColor, qmlStyler, group, tableName) {
+  const styleArr = qmlStyler
+    ? qmlStyler(attrs)
+    : [{color:fallbackColor,weight:1.5,opacity:.85,fillColor:fallbackColor,fillOpacity:.25,radius:5,dashArray:null}];
+  const styles = Array.isArray(styleArr) ? styleArr : [styleArr];
+
+  styles.forEach((style) => {
+    const geoLayer = L.geoJSON(
+      {type:'Feature',geometry:geojson,properties:attrs},
+      {
+        style:()=>({
+          color:style.color, weight:style.weight, opacity:style.opacity,
+          fillColor:style.fillColor||'none', fillOpacity:style.fillOpacity||0,
+          dashArray:style.dashArray||null, lineCap:'round', lineJoin:'round'
+        }),
+        pointToLayer:(_,ll)=>L.circleMarker(ll,{
+          radius:style.radius||5, color:style.color, weight:style.weight||1.5,
+          fillColor:style.fillColor||'none', fillOpacity:style.fillOpacity||0, opacity:style.opacity
+        })
+      }
+    );
+    geoLayer.addTo(group);
+  });
+}
+
+// ═══ Label rendering ══════════════════════════════════════════════════════════
+function rebuildLabels(table) {
+  const lo = LAYERS[table]; if (!lo) return;
+  lo.labelGroup.clearLayers();
+  if (!lo.labelsOn) return;
+  const hasExpr = typeof lo.labelExpr === 'function';
+  if (!hasExpr && (!lo.labelFields || lo.labelFields.length === 0)) return;
+  const cfg = lo.labelConfig || {
+    fontSize:10, color:'#222', bold:true, italic:false,
+    fontFamily:'Calibri', bufferOn:true, bufferSize:2, bufferColor:'rgba(255,255,255,0.85)'
+  };
+  const sep = lo.labelSep !== undefined ? lo.labelSep : ' ';
+  for (const {geojson, attrs} of lo.features) {
+    let text;
+    if (hasExpr) {
+      const result = lo.labelExpr(attrs);
+      if (!result) continue;
+      text = result;
+    } else {
+      const parts = lo.labelFields
+        .map(f => attrs[f])
+        .filter(v => {
+          if (v === null || v === undefined || v === '') return false;
+          if (v === 0 || v === '0' || (typeof v === 'number' && v === 0)) return false;
+          if (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)) && Number(v) === 0) return false;
+          return true;
+        });
+      if (!parts.length) continue;
+      text = parts.join(sep);
+    }
+    const coord = geomCentroid(geojson);
+    if (!coord) continue;
+    const latlng = L.latLng(coord[1], coord[0]);
+    buildLabelMarker(text, latlng, cfg).addTo(lo.labelGroup);
+  }
+}
+
+function toggleLabels(table) {
+  const lo = LAYERS[table]; if (!lo) return;
+  lo.labelsOn = !lo.labelsOn;
+  if (lo.labelsOn) {
+    lo.labelGroup.addTo(map);
+    if (lo.labelGroup.getLayers().length === 0) rebuildLabels(table);
+  } else {
+    map.removeLayer(lo.labelGroup);
+  }
+  updateCtrlRow(table);
+}
+
+function toggleLabelField(table, field, checked) {
+  const lo = LAYERS[table]; if (!lo) return;
+  if (checked) {
+    if (!lo.labelFields.includes(field)) lo.labelFields.push(field);
+  } else {
+    lo.labelFields = lo.labelFields.filter(f => f !== field);
+  }
+  lo.labelGroup.clearLayers();
+  if (lo.labelsOn) rebuildLabels(table);
+}
+
+function setLabelSep(table, sep) {
+  const lo = LAYERS[table]; if (!lo) return;
+  lo.labelSep = sep;
+  lo.labelGroup.clearLayers();
+  if (lo.labelsOn) rebuildLabels(table);
+}
+
+// ═══ Redraw ═══════════════════════════════════════════════════════════════════
+function redrawLayer(table) {
+  const lo=LAYERS[table]; if(!lo) return;
+  lo.group.clearLayers();
+  for(const{geojson,attrs}of lo.features)
+    addFeatureToGroup(geojson,attrs,lo.color,lo.qmlStyler,lo.group,lo.table);
+  if(lo.labelsOn) rebuildLabels(table);
+  flushPatterns();
+}
+
+// ═══ QML load ═════════════════════════════════════════════════════════════════
+function openQMLPicker(table){qmlTargetTable=table;document.getElementById('qml-input-global').click();}
+function loadQMLFile(file,table){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const {styler,labelConfig}=parseQML(e.target.result);
+      const lo=LAYERS[table];
+      lo.qmlStyler=styler;
+      lo.qmlName=file.name;
+      if(labelConfig){
+        lo.labelConfig=labelConfig;
+        if(labelConfig.fieldName){
+          lo.labelFields=[labelConfig.fieldName];
+          dlog(`Label dálkur: "${labelConfig.fieldName}"`, 'ok');
+        }
+      }
+      redrawLayer(table);
+      updateCtrlRow(table);
+    }catch(err){dlog('QML villa: '+err.message,'err');}
+  };
+  r.readAsText(file);
+}
+function clearQML(table){
+  const lo=LAYERS[table];
+  lo.qmlStyler=null;lo.qmlName=null;lo.labelConfig=null;
+  redrawLayer(table);updateCtrlRow(table);
+}
+
+// ═══ Sidebar ══════════════════════════════════════════════════════════════════
+function updateCtrlRow(table) {}
+
+function zoomTo(table){try{const b=LAYERS[table].group.getBounds();if(b.isValid())map.fitBounds(b,{padding:[40,40]});}catch(e){}}
+function fitAll(){let b=null;Object.values(LAYERS).forEach(({group})=>{try{const gb=group.getBounds();if(gb.isValid())b=b?b.extend(gb):gb;}catch(e){}});if(b&&b.isValid())map.fitBounds(b,{padding:[50,50]});}
+function showMultiInfo(hits) {
+  if (!hits || !hits.length) return;
+  const seen = new Set();
+  const unique = hits.filter(h => {
+    const key = h.tableName + JSON.stringify(h.attrs);
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+  let html = '';
+  unique.forEach((h, i) => {
+    const lo = LAYERS[h.tableName];
+    const layerName = lo ? (lo.name || h.tableName) : h.tableName;
+    const entries = Object.entries(h.attrs).filter(([,v]) => v !== null && v !== undefined && v !== '');
+    if (!entries.length) return;
+    if (unique.length > 1) {
+      html += `<div style="font-family:'Calibri','Trebuchet MS',sans-serif;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:${i>0?'10px':0} 0 4px;padding-top:${i>0?'8px':'0'};border-top:${i>0?'1px solid var(--border2)':'none'}">${layerName}</div>`;
+    }
+    html += entries.map(([k,v]) =>
+      `<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`
+    ).join('');
+  });
+  if (!html) return;
+  document.getElementById('info-content').innerHTML = html;
+  document.getElementById('info-panel').classList.add('visible');
+}
+function showInfo(attrs){ showMultiInfo([{tableName:'',attrs}]); }
+function closeInfo(){document.getElementById('info-panel').classList.remove('visible');}
+</script>
+</body>
+</html>
